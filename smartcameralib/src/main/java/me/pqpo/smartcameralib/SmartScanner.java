@@ -13,7 +13,7 @@ public class SmartScanner {
 
     /*** 以下配置参数会在 native 代码中读取 */
 
-    public static boolean DEBUG = false;
+    public static boolean DEBUG = BuildConfig.DEBUG;
 
     /**
      * 线段最小长度检测比例
@@ -118,6 +118,7 @@ public class SmartScanner {
             previewBitmap = preparePreviewBitmap((int)(scaleRatio * maskW),
                     (int)(scaleRatio * maskH));
         }
+
         return previewScan(yuvData, width, height, rotation, maskRect.left, maskRect.top, maskW, maskH, previewBitmap, scaleRatio);
     }
 

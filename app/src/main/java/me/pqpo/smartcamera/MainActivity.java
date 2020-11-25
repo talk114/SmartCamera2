@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initCameraView() {
-        mCameraView.getSmartScanner().setPreview(true);
+        mCameraView.getSmartScanner().setPreview(false);
         mCameraView.setOnScanResultListener(new SmartCameraView.OnScanResultListener() {
             @Override
             public boolean onScanResult(SmartCameraView smartCameraView, int result, byte[] yuvData) {
@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                 int width = mCameraView.getWidth();
                 int height = mCameraView.getHeight();
                 if (width < height) {
-                    maskView.setMaskSize((int) (width * 0.6f), (int) (width * 0.6f / 0.63));
+                    maskView.setMaskSize((int) (width * 0.9f), (int) (width * 0.9f *0.54/ 0.86));
                     maskView.setMaskOffset(0, -(int)(width * 0.1));
                 } else {
                     maskView.setMaskSize((int) (width * 0.6f), (int) (width * 0.6f * 0.63));
