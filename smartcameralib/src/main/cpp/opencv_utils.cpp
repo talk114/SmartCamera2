@@ -42,7 +42,7 @@ void drawLines(Mat &src, vector<Vec2f> &lines) {
 void drawLines(Mat &src, vector<Vec4i> &lines, int offsetX, int offsetY) {
     for( size_t i = 0; i < lines.size(); i++ ) {
         Vec4i l = lines[i];
-        line(src, Point(l[0] + offsetX, l[1] + offsetY), Point(l[2] + offsetX, l[3] + offsetY), Scalar(255), 4, LINE_AA);
+        cv::line(src, Point(l[0] + offsetX, l[1] + offsetY), Point(l[2] + offsetX, l[3] + offsetY), Scalar(255), 4, LINE_AA);
     }
 }
 

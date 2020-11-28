@@ -3,11 +3,15 @@ package me.pqpo.smartcamera;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.Build;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -129,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initCameraView() {
-        mCameraView.getSmartScanner().setPreview(false);
+        mCameraView.getSmartScanner().setPreview(true);
         mCameraView.setOnScanResultListener(new SmartCameraView.OnScanResultListener() {
             @Override
             public boolean onScanResult(SmartCameraView smartCameraView, int result, byte[] yuvData) {
@@ -213,8 +217,26 @@ public class MainActivity extends AppCompatActivity {
                 window.setBackgroundDrawableResource(R.color.colorTrans);
             }
         }
+        float ratio = bitmap.getWidth()/SmartScanner.maxSize;
+        Canvas c = new Canvas(bitmap);
+        try {
+            drawItem(c, SmartScanner.lastSelected.left, ratio);
+            drawItem(c, SmartScanner.lastSelected.right, ratio);
+            drawItem(c, SmartScanner.lastSelected.bottom, ratio);
+            drawItem(c, SmartScanner.lastSelected.top, ratio);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         ivDialog.setImageBitmap(bitmap);
         alertDialog.show();
+    }
+    Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private void drawItem(Canvas c, Rect[] items, float ratio) {
+        paint.setStrokeWidth(4);
+        paint.setColor(Color.RED);
+        for(Rect item :items) {
+            c.drawLine(item.left*ratio, item.top*ratio, item.right*ratio, item.bottom*ratio, paint);
+        }
     }
 
     @Override

@@ -3,6 +3,9 @@ package me.pqpo.smartcameralib;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.support.annotation.NonNull;
+import android.util.Log;
+
+import java.util.ArrayList;
 
 /**
  * Created by pqpo on 2018/8/16.
@@ -47,9 +50,9 @@ public class SmartScanner {
      * 2. minLinLength: 能组成一条直线的最少点的数量, 点数量不足的直线将被抛弃。
      * 3. maxLineGap: 能被认为在一条直线上的点的最大距离，若出现较多断断续续的线段可以适当增大该值。
      */
-    public static int houghLinesThreshold = 130;
-    public static int houghLinesMinLineLength = 80;
-    public static int houghLinesMaxLineGap = 10;
+    public static int houghLinesThreshold = 100;
+    public static int houghLinesMinLineLength = 60;
+    public static int houghLinesMaxLineGap = 0;
     /**
      * 检测范围比例
      * 比例越小表示待检测物体要更靠近边框
@@ -76,11 +79,12 @@ public class SmartScanner {
      *      该线段符合检测条件,几乎水平
      *  }
      */
-    public static float angleThreshold = 5;
+    public static float angleThreshold = 25;
 
     /** 预览 */
     private boolean preview = false;
     private Bitmap mPreviewBitmap;
+    public static HoloItems lastSelected;
 
     /**
      * 是否需要预览处理过程中的图片
@@ -119,7 +123,12 @@ public class SmartScanner {
                     (int)(scaleRatio * maskH));
         }
 
-        return previewScan(yuvData, width, height, rotation, maskRect.left, maskRect.top, maskW, maskH, previewBitmap, scaleRatio);
+        HoloItems item = previewScan(yuvData, width, height, rotation, maskRect.left, maskRect.top, maskW, maskH, previewBitmap, scaleRatio);
+        if(item!=null){
+            lastSelected = item;
+            return 1;
+        }
+        return 0;
     }
 
     private Bitmap preparePreviewBitmap(int bitmapW, int bitmapH) {
@@ -141,11 +150,10 @@ public class SmartScanner {
         return Math.max(0, Math.min(ratio, 1));
     }
 
-    private static native int previewScan(byte[] yuvData, int width, int height, int rotation, int x, int y, int maskWidth, int maskHeight, Bitmap previewBitmap, float scaleRatio);
+    private static native HoloItems previewScan(byte[] yuvData, int width, int height, int rotation, int x, int y, int maskWidth, int maskHeight, Bitmap previewBitmap, float scaleRatio);
 
     public static native void reloadParams();
 
-    public static native void crop(byte[] yuvData, int width, int height, int rotation, int x, int y, int maskWidth, int maskHeight, Bitmap resultBitmap);
 
     static {
         System.loadLibrary("smart_camera");

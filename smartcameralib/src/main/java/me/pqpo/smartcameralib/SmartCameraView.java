@@ -148,11 +148,6 @@ public class SmartCameraView extends CameraView {
         return maskView.getMaskRect();
     }
 
-    public Bitmap cropYuvImage(final byte[] data, int width, int height, Rect maskRect, int rotation) {
-        Bitmap bitmap = Bitmap.createBitmap(maskRect.width(), maskRect.height(), Bitmap.Config.ARGB_8888);
-        SmartScanner.crop(data, width, height, rotation, maskRect.left, maskRect.top, maskRect.width(), maskRect.height(), bitmap);
-        return bitmap;
-    }
 
     public void cropJpegImage(final byte[] data, final CropCallback cropCallback) {
         new Thread() {
