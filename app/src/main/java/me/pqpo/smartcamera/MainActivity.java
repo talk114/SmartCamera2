@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         // 检测角度阈值
         SmartScanner.angleThreshold = 5;
         // don't forget reload params
-        SmartScanner.reloadParams();
+
     }
 
     private void initCameraView() {
@@ -197,6 +197,9 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     maskView.setMaskSize((int) (width * 0.6f), (int) (width * 0.6f * 0.63));
                 }
+                SmartScanner.maxSize =width;
+                SmartScanner.reloadParams();
+
             }
         });
         mCameraView.setMaskView(maskView);

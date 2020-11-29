@@ -116,6 +116,7 @@ public class SmartScanner {
         if (yuvData.length == 0 || maskH <= 0 || maskW <= 0) {
             return 0;
         }
+        maxSize = maskW;
         float scaleRatio = calculateScaleRatio(maskW, maskH);
         Bitmap previewBitmap = null;
         if (preview) {
@@ -151,6 +152,7 @@ public class SmartScanner {
     }
 
     private static native HoloItems previewScan(byte[] yuvData, int width, int height, int rotation, int x, int y, int maskWidth, int maskHeight, Bitmap previewBitmap, float scaleRatio);
+    private static native HoloItems previewCourtours(byte[] yuvData, int width, int height, int rotation, int x, int y, int maskWidth, int maskHeight, Bitmap previewBitmap, float scaleRatio);
 
     public static native void reloadParams();
 

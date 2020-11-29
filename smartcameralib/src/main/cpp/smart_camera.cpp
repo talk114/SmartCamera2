@@ -268,6 +268,61 @@ Java_me_pqpo_smartcameralib_SmartScanner_previewScan(JNIEnv *env, jclass type, j
     return NULL;
 }
 
+extern "C"
+JNIEXPORT jobject
+JNICALL
+Java_me_pqpo_smartcameralib_SmartScanner_previewCourtours(JNIEnv *env, jclass type, jbyteArray yuvData_,
+                                                     jint width, jint height, jint rotation, jint x,
+                                                     jint y, jint maskWidth, jint maskHeight,
+                                                     jobject previewBitmap, jfloat ratio) {
+    jbyte *yuvData = env->GetByteArrayElements(yuvData_, NULL);
+    Mat outMat;
+    processMat(yuvData, outMat, width, height, rotation, x, y, maskWidth, maskHeight, ratio);
+    env->ReleaseByteArrayElements(yuvData_, yuvData, 0);
+
+    if (outMat.cols == 0) {
+        return 0;
+    }
+
+    int matH = outMat.rows;
+    int matW = outMat.cols;
+    int thresholdW = cvRound(gScannerParams.detectionRatio * matW);
+    int thresholdH = cvRound(gScannerParams.detectionRatio * matH);
+    int checkMinLengthH = static_cast<int>(matH * gScannerParams.checkMinLengthRatio);
+    int checkMinLengthW = static_cast<int>(matW * gScannerParams.checkMinLengthRatio);
+
+    Rect rect(0, 0, matW, matH);
+    Mat croppedMat = outMat(rect);
+
+    vector<Point>  countours = findMaxContours(croppedMat)
+    if (previewBitmap != NULL) {
+
+        mat_to_bitmap(env, outMat, previewBitmap);
+    }
+
+    if (DEBUG) {
+        std::ostringstream logStr;
+        logStr << "Number of lines in the area: [ " << countours.size()
+                 << " ]" << std::endl;
+        string log = logStr.str();
+        LOG_D("%s", log.c_str());
+    }
+
+
+    if (countours.size() > 0){
+        jclass cls = find_class(env, "me/pqpo/smartcameralib/HoloItems");
+
+        jfieldID left = get_field(env, &cls,"left","[Landroid/graphics/Rect;");
+
+        countours
+        jobject classObject = env->NewObject(cls, env->GetMethodID(cls,"<init>","()V"));
+
+
+        return classObject;
+    }
+    return NULL;
+}
+
 static void initScannerParams(JNIEnv * env) {
     jclass classDocScanner = env->FindClass(kClassScanner);
     DEBUG = env->GetStaticBooleanField(classDocScanner,
