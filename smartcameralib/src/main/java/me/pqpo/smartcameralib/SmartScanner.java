@@ -42,8 +42,8 @@ public class SmartScanner {
      *
      * 大小比例推荐2到3倍
      */
-    public static int cannyThreshold1 = 20;
-    public static int cannyThreshold2 = 50;
+    public static int cannyThreshold1 = 30;
+    public static int cannyThreshold2 = 100;
     /**
      * 霍夫变换检测线段参数
      * 1. threshold: 最小投票数，要检测一条直线所需最少的的曲线交点，增大该值会减少检测出的线段数量。

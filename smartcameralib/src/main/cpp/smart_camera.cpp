@@ -306,7 +306,7 @@ Java_me_pqpo_smartcameralib_SmartScanner_previewCourtours(JNIEnv *env, jclass ty
     Rect rect(0, 0, matW, matH);
     Mat croppedMat = outMat(rect);
 
-    vector<Point>  countours = findMax2Contours(croppedMat);
+    vector<Point>  countours = findMaxContours(croppedMat);
     if (previewBitmap != NULL) {
 
         mat_to_bitmap(env, outMat, previewBitmap);

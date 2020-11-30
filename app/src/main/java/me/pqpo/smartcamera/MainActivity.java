@@ -104,8 +104,8 @@ public class MainActivity extends AppCompatActivity {
           2. 高于阈值2的像素点会被认为是边缘；
           3. 在阈值1和阈值2之间的像素点,若与第2步得到的边缘像素点相邻，则被认为是边缘，否则被认为不是边缘。
          */
-        SmartScanner.cannyThreshold1 = 20; //canny 算符阈值1
-        SmartScanner.cannyThreshold2 = 50; //canny 算符阈值2
+        SmartScanner.cannyThreshold1 = 30; //canny 算符阈值1
+        SmartScanner.cannyThreshold2 = 100; //canny 算符阈值2
         /*
          * 霍夫变换检测线段参数
          * 1. threshold: 最小投票数，要检测一条直线所需最少的的曲线交点，增大该值会减少检测出的线段数量。
@@ -221,17 +221,8 @@ public class MainActivity extends AppCompatActivity {
         }
         float ratio = bitmap.getWidth()/SmartScanner.maxSize;
         Canvas c = new Canvas(bitmap);
-        try {
-            if(SmartScanner.lastSelected.left!=null) {
-                drawItem(c, SmartScanner.lastSelected.left, ratio);
-                drawItem(c, SmartScanner.lastSelected.right, ratio);
-                drawItem(c, SmartScanner.lastSelected.bottom, ratio);
-                drawItem(c, SmartScanner.lastSelected.top, ratio);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        if(SmartScanner.lastSelected.points!=null) {
+
+        if(SmartScanner.lastSelected!=null && SmartScanner.lastSelected.points!=null) {
             maskView.invalidate();
         }
         ivDialog.setImageBitmap(bitmap);
