@@ -61,10 +61,11 @@ public class SmartCameraView extends CameraView {
                 int previewRotation = getPreviewRotation();
                 Size size = getPreviewSize();
                 Rect revisedMaskRect = getAdjustPreviewMaskRect();
+                maskView.setPreviewSize(size);
                 if (revisedMaskRect != null && size != null) {
                     int result = smartScanner.previewScan(data, size.getWidth(), size.getHeight(), previewRotation, revisedMaskRect);
 
-                    Log.wtf("RUNN", "STATE: "+result+" rotation: "+previewRotation +" ROT: "+revisedMaskRect);
+//                    Log.wtf("RUNN", "STATE: "+result+" rotation: "+previewRotation +" ROT: "+revisedMaskRect);
                     uiHandler.obtainMessage(result, data).sendToTarget();
                 }
             }

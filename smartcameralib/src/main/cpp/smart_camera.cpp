@@ -166,6 +166,20 @@ void checkLines(vector <Vec4i> &lines, int checkMinLength, bool vertical) {
     }
 }
 
+jobjectArray parse_array_points(JNIEnv *env,vector<Point> points){
+    jclass rectClassName =find_class(env, "android/graphics/Point");
+    jobjectArray array = env->NewObjectArray(points.size(), rectClassName, NULL);
+    for (unsigned i = 0; i<points.size(); i++) {
+        Point l = points[i];
+        int x = l.x;
+        int y = l.y;
+        jmethodID cid = env->GetMethodID(rectClassName, "<init>", "(II)V");
+        jobject rect = env->NewObject( rectClassName, cid, x, y);
+        env->SetObjectArrayElement(array,i, rect);
+    }
+    return array;
+}
+
 extern "C"
 JNIEXPORT jobject
 
@@ -286,37 +300,41 @@ Java_me_pqpo_smartcameralib_SmartScanner_previewCourtours(JNIEnv *env, jclass ty
 
     int matH = outMat.rows;
     int matW = outMat.cols;
-    int thresholdW = cvRound(gScannerParams.detectionRatio * matW);
-    int thresholdH = cvRound(gScannerParams.detectionRatio * matH);
     int checkMinLengthH = static_cast<int>(matH * gScannerParams.checkMinLengthRatio);
     int checkMinLengthW = static_cast<int>(matW * gScannerParams.checkMinLengthRatio);
 
     Rect rect(0, 0, matW, matH);
     Mat croppedMat = outMat(rect);
 
-    vector<Point>  countours = findMaxContours(croppedMat)
+    vector<Point>  countours = findMax2Contours(croppedMat);
     if (previewBitmap != NULL) {
 
         mat_to_bitmap(env, outMat, previewBitmap);
     }
 
-    if (DEBUG) {
-        std::ostringstream logStr;
-        logStr << "Number of lines in the area: [ " << countours.size()
-                 << " ]" << std::endl;
-        string log = logStr.str();
-        LOG_D("%s", log.c_str());
-    }
 
 
-    if (countours.size() > 0){
+    if (countours.size() ==4){
         jclass cls = find_class(env, "me/pqpo/smartcameralib/HoloItems");
 
-        jfieldID left = get_field(env, &cls,"left","[Landroid/graphics/Rect;");
+        jfieldID points = get_field(env, &cls,"points","[Landroid/graphics/Point;");
 
-        countours
+
         jobject classObject = env->NewObject(cls, env->GetMethodID(cls,"<init>","()V"));
+        env->SetObjectField(classObject, points, parse_array_points(env, countours));
 
+
+        if (DEBUG) {
+            std::ostringstream logStr;
+            logStr << "Countours: [ " << countours.size()
+                    << " x1: "  << countours[0].x     << " y1: "  << countours[0].y
+                    << " x2: "  << countours[1].x     << " y2: "  << countours[1].y
+                    << " x3: "  << countours[2].x     << " y3: "  << countours[2].y
+                    << " x4: "  << countours[3].x     << " y4: "  << countours[3].y
+                   << " ]" << std::endl;
+            string log = logStr.str();
+        LOG_D("%s", log.c_str());
+        }
 
         return classObject;
     }

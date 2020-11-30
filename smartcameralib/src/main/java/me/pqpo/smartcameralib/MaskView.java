@@ -6,6 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
@@ -14,13 +16,16 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.google.android.cameraview.base.Size;
 
 /**
  * Created by pqpo on 2018/8/15.
  */
-public class MaskView extends View implements MaskViewImpl{
+public class MaskView extends View implements MaskViewImpl {
 
     private Paint mMaskPaint;
     private PorterDuffXfermode porterDuffXfermode;
@@ -42,6 +47,9 @@ public class MaskView extends View implements MaskViewImpl{
     private int scanSpeed = 10;
     private int scanStartColor = 0xFFFFFFFF;
     private int scanEndColor = 0x00FFFFFF;
+    private Path path = new Path();
+    private Size previewSize;
+    private float ratio=1.0f;
 
     public MaskView(@NonNull Context context) {
         this(context, null);
@@ -139,6 +147,11 @@ public class MaskView extends View implements MaskViewImpl{
         return maskRect;
     }
 
+    @Override
+    public void setPreviewSize(Size size) {
+        this.previewSize = size;
+    }
+
     private void initMaskView() {
         porterDuffXfermode = new PorterDuffXfermode(PorterDuff.Mode.CLEAR);
         mMaskPaint = new Paint();
@@ -162,7 +175,7 @@ public class MaskView extends View implements MaskViewImpl{
         int sc = canvas.saveLayerAlpha(0, 0, canvasWidth, canvasHeight, maskAlpha, Canvas.ALL_SAVE_FLAG);
         mMaskPaint.setStyle(Paint.Style.FILL);
         mMaskPaint.setColor(Color.BLACK);
-        canvas.drawRect(0,0, canvasWidth, canvasHeight, mMaskPaint);
+        canvas.drawRect(0, 0, canvasWidth, canvasHeight, mMaskPaint);
         mMaskPaint.setXfermode(porterDuffXfermode);
         canvas.drawRoundRect(maskRect, radius, radius, mMaskPaint);
         mMaskPaint.setXfermode(null);
@@ -171,6 +184,45 @@ public class MaskView extends View implements MaskViewImpl{
         mMaskPaint.setStyle(Paint.Style.STROKE);
         mMaskPaint.setStrokeWidth(maskLineWidth);
         canvas.drawRoundRect(maskRect, radius, radius, mMaskPaint);
+        drawRectV(canvas);
+    }
+
+    private void drawRectV(Canvas canvas) {
+        HoloItems item = SmartScanner.lastSelected;
+        if (item != null && item.points != null) {
+            path.reset();
+            Point first = item.points[0];
+            float x = doScaleX(first.x);
+            float y = doScaleY(first.y);
+            ratio = SmartScanner.calculateScaleRatio((int)maskRect.width(), 1);
+
+            path.moveTo(x, y);
+            int c = 0;
+//            Log.wtf("POINT["+c+"]", "X: "+x+" Y: "+y);
+            for (Point p : item.points) {
+                 x = doScaleX(p.x);
+                 y = doScaleY(p.y);
+//                Log.wtf("POINT["+c+"]", "X: "+x+" Y: "+y);
+                path.lineTo(x, y);
+c++;
+            }
+            x = doScaleX(first.x);
+            y = doScaleY(first.y);
+            path.lineTo(x, y);
+
+
+            canvas.drawPath(path, mMaskPaint);
+        }
+
+    }
+
+    private float doScaleY(int y) {
+        return y/ratio +  maskRect.top;
+
+    }
+
+    private float doScaleX(int x) {
+        return x/ratio +  maskRect.left;
     }
 
     private void drawScanningLine(Canvas canvas) {
@@ -190,10 +242,11 @@ public class MaskView extends View implements MaskViewImpl{
         postInvalidateOnAnimation();
     }
 
-    private @NonNull Bitmap createGradientBitmap() {
+    private @NonNull
+    Bitmap createGradientBitmap() {
         Bitmap bitmap = Bitmap.createBitmap(maskWidth, scanGradientSpread, Bitmap.Config.ARGB_4444);
         Canvas canvas = new Canvas(bitmap);
-        LinearGradient shader = new LinearGradient(0, scanGradientSpread,0,0,new int[] {scanStartColor,scanEndColor},null,Shader.TileMode.CLAMP);
+        LinearGradient shader = new LinearGradient(0, scanGradientSpread, 0, 0, new int[]{scanStartColor, scanEndColor}, null, Shader.TileMode.CLAMP);
         Paint paint = new Paint();
         paint.setShader(shader);
         canvas.drawRoundRect(new RectF(0, 0, maskWidth, scanGradientSpread), radius, radius, paint);
@@ -219,7 +272,7 @@ public class MaskView extends View implements MaskViewImpl{
         maskRect.left = leftRightOffset + maskOffsetX;
         maskRect.top = topBottomOffset + maskOffsetY;
         maskRect.right = maskRect.left + maskWidth;
-        maskRect.bottom =  maskRect.top + maskHeight;
+        maskRect.bottom = maskRect.top + maskHeight;
     }
 
 }

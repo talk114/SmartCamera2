@@ -62,7 +62,7 @@ public class SmartScanner {
      * 为了提高性能，检测的图片会缩小到该尺寸之内
      * 设置太小的话会影响检测效果
      */
-    public static float maxSize = 300;
+    public static float maxSize = 640;
 
     /**
      * 检测角度阈值
@@ -116,7 +116,6 @@ public class SmartScanner {
         if (yuvData.length == 0 || maskH <= 0 || maskW <= 0) {
             return 0;
         }
-        maxSize = maskW;
         float scaleRatio = calculateScaleRatio(maskW, maskH);
         Bitmap previewBitmap = null;
         if (preview) {
@@ -124,11 +123,14 @@ public class SmartScanner {
                     (int)(scaleRatio * maskH));
         }
 
-        HoloItems item = previewScan(yuvData, width, height, rotation, maskRect.left, maskRect.top, maskW, maskH, previewBitmap, scaleRatio);
+        HoloItems item = previewCourtours(yuvData, width, height, rotation,
+                maskRect.left, maskRect.top, maskW, maskH, previewBitmap, scaleRatio);
         if(item!=null){
             lastSelected = item;
+            if(item.left!=null)
             return 1;
-        }
+        }else
+            lastSelected=null;
         return 0;
     }
 
@@ -146,7 +148,7 @@ public class SmartScanner {
         return mPreviewBitmap;
     }
 
-    private static float calculateScaleRatio(int width, int height) {
+    public static float calculateScaleRatio(int width, int height) {
         float ratio = Math.min(maxSize / width, maxSize / height);
         return Math.max(0, Math.min(ratio, 1));
     }

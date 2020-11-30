@@ -176,9 +176,9 @@ public class MainActivity extends AppCompatActivity {
 
         });
     }
-
+    MaskView maskView;
     private void initMaskView() {
-        final MaskView maskView = (MaskView) mCameraView.getMaskView();
+        maskView   = (MaskView) mCameraView.getMaskView();
         maskView.setMaskLineColor(0xff00adb5);
         maskView.setShowScanLine(false);
         maskView.setScanLineGradient(0xff00adb5, 0x0000adb5);
@@ -197,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     maskView.setMaskSize((int) (width * 0.6f), (int) (width * 0.6f * 0.63));
                 }
-                SmartScanner.maxSize =width;
                 SmartScanner.reloadParams();
 
             }
@@ -223,12 +222,17 @@ public class MainActivity extends AppCompatActivity {
         float ratio = bitmap.getWidth()/SmartScanner.maxSize;
         Canvas c = new Canvas(bitmap);
         try {
-            drawItem(c, SmartScanner.lastSelected.left, ratio);
-            drawItem(c, SmartScanner.lastSelected.right, ratio);
-            drawItem(c, SmartScanner.lastSelected.bottom, ratio);
-            drawItem(c, SmartScanner.lastSelected.top, ratio);
+            if(SmartScanner.lastSelected.left!=null) {
+                drawItem(c, SmartScanner.lastSelected.left, ratio);
+                drawItem(c, SmartScanner.lastSelected.right, ratio);
+                drawItem(c, SmartScanner.lastSelected.bottom, ratio);
+                drawItem(c, SmartScanner.lastSelected.top, ratio);
+            }
         }catch (Exception e){
             e.printStackTrace();
+        }
+        if(SmartScanner.lastSelected.points!=null) {
+            maskView.invalidate();
         }
         ivDialog.setImageBitmap(bitmap);
         alertDialog.show();
