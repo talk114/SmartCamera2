@@ -73,19 +73,50 @@ processMat(void *yuvData, Mat &outMat, int width, int height, int rotation, int 
     resize(croppedMat, resizeMat, Size(static_cast<int>(maskWidth * scaleRatio),
                                        static_cast<int>(maskHeight * scaleRatio)));
 
-    Mat blurMat;
-    GaussianBlur(resizeMat, blurMat,
-                 Size(gScannerParams.gaussianBlurRadius, gScannerParams.gaussianBlurRadius), 0);
+//    Mat blurMat;
+//    GaussianBlur(resizeMat, resizeMat,
+//                 Size(gScannerParams.gaussianBlurRadius, gScannerParams.gaussianBlurRadius), 0);
+        GaussianBlur(resizeMat, resizeMat, Size(25, 25), 2, 2);		//Gaussian blur
+    erode(resizeMat, resizeMat, Mat(), Point(-1, -1));
+    //Erosion
 
-    Mat cannyMat;
-    Canny(blurMat, cannyMat, gScannerParams.cannyThreshold1, gScannerParams.cannyThreshold2);
-    Mat dilateMat;
-    dilate(cannyMat, dilateMat, getStructuringElement(MORPH_RECT, Size(2, 2)));
-    Mat thresholdMat;
-    threshold(dilateMat, thresholdMat, gScannerParams.thresholdThresh,
-              gScannerParams.thresholdMaxVal, THRESH_OTSU);
-    outMat = thresholdMat;
+//    Mat cannyMat;
+    Canny(resizeMat, resizeMat, gScannerParams.cannyThreshold1, gScannerParams.cannyThreshold2);
+    dilate(resizeMat, resizeMat, getStructuringElement(MORPH_RECT, Size(3, 3)));
+//    medianBlur(resizeMat, resizeMat, 7);
+
+//    dilate(resizeMat, resizeMat, Mat(), Point(-1, -1), 10, 1, 10);	//Dilation
+    threshold(resizeMat, resizeMat, 50,255, THRESH_OTSU);
+//    Mat dilateMat;
+//    dilate(cannyMat, dilateMat, getStructuringElement(MORPH_RECT, Size(2, 2)));
+//    Mat thresholdMat;
+//    threshold(dilateMat, thresholdMat, gScannerParams.thresholdThresh,
+//              gScannerParams.thresholdMaxVal, THRESH_OTSU);
+
+//    GaussianBlur(resizeMat, resizeMat, Size(15, 15), 1.5, 1.5);		//Gaussian blur
+//    Canny(resizeMat, resizeMat, gScannerParams.cannyThreshold1, gScannerParams.cannyThreshold2);
+//    dilate(resizeMat, resizeMat, Mat(), Point(-1, -1), 10, 1, 10);	//Dilation
+
+    outMat = resizeMat;
 }
+
+
+
+void processMat2(void *yuvData, Mat &outMat, int width, int height, int rotation, int maskX, int maskY,
+          int maskWidth, int maskHeight, float scaleRatio) {
+    Mat mYuv(height + height / 2, width, CV_8UC1, (uchar *) yuvData);
+    Mat imgMat(height, width, CV_8UC1);
+    cvtColor(mYuv, imgMat, COLOR_YUV420sp2GRAY);
+
+    Mat croppedMat = cropByMask(imgMat, rotation, maskX, maskY, maskWidth, maskHeight);
+    Mat resizeMat;
+    resize(croppedMat, resizeMat, Size(static_cast<int>(maskWidth * scaleRatio),
+                                       static_cast<int>(maskHeight * scaleRatio)));
+
+    outMat = resizeMat;
+
+}
+
 
 vector <Vec4i> houghLines(Mat &scr) {
     vector <Vec4i> lines;
@@ -303,41 +334,44 @@ Java_me_pqpo_smartcameralib_SmartScanner_previewCourtours(JNIEnv *env, jclass ty
     int checkMinLengthH = static_cast<int>(matH * gScannerParams.checkMinLengthRatio);
     int checkMinLengthW = static_cast<int>(matW * gScannerParams.checkMinLengthRatio);
 
-    Rect rect(0, 0, matW, matH);
-    Mat croppedMat = outMat(rect);
 
-    vector<Point>  countours = findMaxContours(croppedMat);
+    vector<vector<Point>> pointss;
+//    find_squares(croppedMat, pointss);
+//    findSquares(croppedMat, pointss);
+
     if (previewBitmap != NULL) {
 
         mat_to_bitmap(env, outMat, previewBitmap);
     }
+    vector<Point> countours =findMaxCoutours(outMat) ;
 
 
 
-    if (countours.size() ==4){
-        jclass cls = find_class(env, "me/pqpo/smartcameralib/HoloItems");
+        if (countours.size() == 4) {
+            jclass cls = find_class(env, "me/pqpo/smartcameralib/HoloItems");
 
-        jfieldID points = get_field(env, &cls,"points","[Landroid/graphics/Point;");
-
-
-        jobject classObject = env->NewObject(cls, env->GetMethodID(cls,"<init>","()V"));
-        env->SetObjectField(classObject, points, parse_array_points(env, countours));
+            jfieldID points = get_field(env, &cls, "points", "[Landroid/graphics/Point;");
 
 
-        if (DEBUG) {
-            std::ostringstream logStr;
-            logStr << "Countours: [ " << countours.size()
-                    << " x1: "  << countours[0].x     << " y1: "  << countours[0].y
-                    << " x2: "  << countours[1].x     << " y2: "  << countours[1].y
-                    << " x3: "  << countours[2].x     << " y3: "  << countours[2].y
-                    << " x4: "  << countours[3].x     << " y4: "  << countours[3].y
-                   << " ]" << std::endl;
-            string log = logStr.str();
-        LOG_D("%s", log.c_str());
+            jobject classObject = env->NewObject(cls, env->GetMethodID(cls, "<init>", "()V"));
+            env->SetObjectField(classObject, points, parse_array_points(env, countours));
+
+
+            if (DEBUG) {
+                std::ostringstream logStr;
+                logStr << "Countours: [ " << countours.size()
+                       << " x1: " << countours[0].x << " y1: " << countours[0].y
+                                          << " x2: " << countours[1].x << " y2: " << countours[1].y
+                                          << " x3: " << countours[2].x << " y3: " << countours[2].y
+                                          << " x4: " << countours[3].x << " y4: " << countours[3].y
+                       << " ]" << std::endl;
+                string log = logStr.str();
+                LOG_D("%s", log.c_str());
+            }
+
+            return classObject;
         }
 
-        return classObject;
-    }
     return NULL;
 }
 

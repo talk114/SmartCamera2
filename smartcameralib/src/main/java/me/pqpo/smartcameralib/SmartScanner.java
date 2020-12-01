@@ -62,7 +62,7 @@ public class SmartScanner {
      * 为了提高性能，检测的图片会缩小到该尺寸之内
      * 设置太小的话会影响检测效果
      */
-    public static float maxSize = 640;
+    public static float maxSize = 300;
 
     /**
      * 检测角度阈值
